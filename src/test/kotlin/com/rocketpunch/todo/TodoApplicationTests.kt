@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.rocketpunch.todo.web.TodoPostRequestBody
 import org.hamcrest.Matchers.anything
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.greaterThan
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -32,9 +33,9 @@ class TodoApplicationTests {
         }.andExpect {
             status { isCreated() }
             content {
-                jsonPath("id", anything())
+                jsonPath("id", greaterThan(0))
                 jsonPath("name", equalTo(requestBody.name))
-                jsonPath("completed", equalTo(requestBody.completed))
+                jsonPath("completed", equalTo(false))
                 jsonPath("completed_at", anything())
                 jsonPath("created_at", anything())
                 jsonPath("updated_at", anything())

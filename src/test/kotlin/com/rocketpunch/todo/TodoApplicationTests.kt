@@ -76,6 +76,24 @@ class TodoApplicationTests {
             }
     }
 
+    @Transactional
+    @Test
+    fun `when GET todos expect return todos`() {
+        val todos = listOf(
+            mockMvc.createTodos("todo1", null),
+            mockMvc.createTodos("todo2", null)
+        )
+
+        mockMvc.get("/todos")
+            .andExpect {
+                status { isOk() }
+                content {
+                    jsonPath("$.[0].id", equalTo(todos[0].id.toInt()))
+                    jsonPath("$.[1].id", equalTo(todos[1].id.toInt()))
+                }
+            }
+    }
+
     private fun MockMvc.createTodos(name: String, completed: Boolean?): TodoModel {
         return postTodos(name, completed).andReturn()
             .response.contentAsString

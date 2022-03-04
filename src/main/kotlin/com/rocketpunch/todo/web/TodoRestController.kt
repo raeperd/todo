@@ -36,6 +36,12 @@ class TodoRestController(
             ?: throw NoSuchElementException("No such todo with given id: $id")
     }
 
+    @GetMapping
+    fun getTodos(): List<TodoSummarizedModel> {
+        return todoRepository.findAll()
+            .map { todo -> TodoSummarizedModel(todo) }
+    }
+
     @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNoSuchElementException(exception: NoSuchElementException): ExceptionModel {
@@ -69,6 +75,13 @@ data class TodoModel(
         todo.createdAt,
         todo.updatedAt
     )
+}
+
+data class TodoSummarizedModel(
+    val id: Long,
+    val name: String
+) {
+    constructor(todo: Todo) : this(todo.id ?: -1, todo.name)
 }
 
 data class ExceptionModel(

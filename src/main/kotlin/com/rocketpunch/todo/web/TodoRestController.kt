@@ -48,7 +48,11 @@ class TodoRestController(
     @PutMapping("/{id}")
     fun putTodosById(@PathVariable id: Long, @RequestBody dto: TodoUpdateRequestBody): TodoModel {
         return todoRepository.findByIdOrThrow(id)
-            .let { todo -> TodoModel(todo) }
+            .let { todo ->
+                todo.name = dto.name
+                todo.completed = dto.completed ?: false
+                return@let todoRepository.save(todo)
+            }.let { todoUpdated -> TodoModel(todoUpdated) }
     }
 
     @ResponseStatus(NO_CONTENT)

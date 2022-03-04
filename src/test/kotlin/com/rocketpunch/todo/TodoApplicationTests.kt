@@ -98,11 +98,21 @@ class TodoApplicationTests {
 
     @Test
     fun `when PUT todos by id not exists expect not found status`() {
-        mockMvc.put("/todos/30") {
-            contentType = APPLICATION_JSON
-            content = objectMapper.writeValueAsString(TodoUpdateRequestBody("name", true))
-        }
+        mockMvc.putTodosById(20, "new name", false)
             .andExpect { status { isNotFound() } }
+    }
+
+    @Transactional
+    @Test
+    fun `when PUT todos by id expect ok status`() {
+        val todo = mockMvc.createTodos("todo", false)
+
+        mockMvc.putTodosById(todo.id, "new name", true)
+            .andExpect {
+                status { isOk() }
+                jsonPath("name", equalTo("new name"))
+                jsonPath("completed", equalTo(true))
+            }
     }
 
     @Test
@@ -138,6 +148,13 @@ class TodoApplicationTests {
 
     private fun MockMvc.getTodosById(id: Long): ResultActionsDsl {
         return get("/todos/$id")
+    }
+
+    private fun MockMvc.putTodosById(id: Long, name: String, completed: Boolean): ResultActionsDsl {
+        return put("/todos/$id") {
+            contentType = APPLICATION_JSON
+            content = objectMapper.writeValueAsString(TodoUpdateRequestBody(name, completed))
+        }
     }
 }
 

@@ -13,6 +13,7 @@ jobs:
         with:
           output: swagger-ui
           spec-file: swagger.json
+      - run: mv ./common.oas2.yml ./swagger-ui/common.oas2.yml
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

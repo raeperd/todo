@@ -3,7 +3,7 @@ package com.rocketpunch.todo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.rocketpunch.todo.web.TodoModel
-import com.rocketpunch.todo.web.TodoPostRequestBody
+import com.rocketpunch.todo.web.TodoUpdateRequestBody
 import org.hamcrest.Matchers.anything
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.greaterThan
@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.ResultActionsDsl
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
 import org.springframework.transaction.annotation.Transactional
 
 @AutoConfigureMockMvc
@@ -96,6 +97,15 @@ class TodoApplicationTests {
     }
 
     @Test
+    fun `when PUT todos by id not exists expect not found status`() {
+        mockMvc.put("/todos/30") {
+            contentType = APPLICATION_JSON
+            content = objectMapper.writeValueAsString(TodoUpdateRequestBody("name", true))
+        }
+            .andExpect { status { isNotFound() } }
+    }
+
+    @Test
     fun `when DELETE todos by id not exists expect not found status`() {
         mockMvc.delete("/todos/20")
             .andExpect {
@@ -122,7 +132,7 @@ class TodoApplicationTests {
     private fun MockMvc.postTodos(name: String, completed: Boolean?): ResultActionsDsl {
         return post("/todos?apikey=123") {
             contentType = APPLICATION_JSON
-            content = objectMapper.writeValueAsString(TodoPostRequestBody(name, completed))
+            content = objectMapper.writeValueAsString(TodoUpdateRequestBody(name, completed))
         }
     }
 

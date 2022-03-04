@@ -4,6 +4,7 @@ import com.rocketpunch.todo.domain.Todo
 import com.rocketpunch.todo.domain.TodoRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.NO_CONTENT
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -25,7 +27,7 @@ class TodoRestController(
 ) {
     @ResponseStatus(CREATED)
     @PostMapping
-    fun postTodos(@RequestParam apikey: String, @RequestBody dto: TodoPostRequestBody): TodoModel {
+    fun postTodos(@RequestParam apikey: String, @RequestBody dto: TodoUpdateRequestBody): TodoModel {
         return Todo(null, dto.name, dto.completed ?: false)
             .let { todo -> todoRepository.save(todo) }
             .let { todoSaved -> TodoModel(todoSaved) }
@@ -43,6 +45,16 @@ class TodoRestController(
             .map { todo -> TodoSummarizedModel(todo) }
     }
 
+    @PutMapping("/{id}")
+    fun putTodosById(@PathVariable id: Long, @RequestBody dto: TodoUpdateRequestBody): TodoModel {
+        return todoRepository.findByIdOrThrow(id)
+            .let { todo ->
+                todo.name = dto.name
+                todo.completed = dto.completed ?: false
+                return@let todoRepository.save(todo)
+            }.let { todoUpdated -> TodoModel(todoUpdated) }
+    }
+
     @ResponseStatus(NO_CONTENT)
     @DeleteMapping("/{id}")
     fun deleteTodoById(@PathVariable id: Long) {
@@ -56,9 +68,10 @@ class TodoRestController(
         return ExceptionModel("404", exception.localizedMessage)
     }
 
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler
     fun handleException(exception: Exception): ExceptionModel {
-        return ExceptionModel("500", "Server Error")
+        return ExceptionModel("500", exception.localizedMessage)
     }
 
     private fun TodoRepository.findByIdOrThrow(id: Long): Todo {
@@ -66,7 +79,7 @@ class TodoRestController(
     }
 }
 
-data class TodoPostRequestBody(
+data class TodoUpdateRequestBody(
     val name: String,
     val completed: Boolean?
 )

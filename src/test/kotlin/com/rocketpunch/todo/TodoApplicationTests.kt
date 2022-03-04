@@ -117,7 +117,7 @@ class TodoApplicationTests {
 
     @Test
     fun `when DELETE todos by id not exists expect not found status`() {
-        mockMvc.delete("/todos/20")
+        mockMvc.delete("/todos/20?apikey=1")
             .andExpect {
                 status { isNotFound() }
                 content { jsonPath("status", equalTo("404")) }
@@ -129,7 +129,7 @@ class TodoApplicationTests {
     fun `when DELETE todo by id expect return no content status`() {
         val todoCreated = mockMvc.createTodos("todo", null)
 
-        mockMvc.delete("/todos/${todoCreated.id}")
+        mockMvc.delete("/todos/${todoCreated.id}?apikey=1")
             .andExpect { status { isNoContent() } }
     }
 
@@ -151,7 +151,7 @@ class TodoApplicationTests {
     }
 
     private fun MockMvc.putTodosById(id: Long, name: String, completed: Boolean): ResultActionsDsl {
-        return put("/todos/$id") {
+        return put("/todos/$id?apikey=1") {
             contentType = APPLICATION_JSON
             content = objectMapper.writeValueAsString(TodoUpdateRequestBody(name, completed))
         }

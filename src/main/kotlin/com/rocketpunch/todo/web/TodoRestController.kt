@@ -2,8 +2,12 @@ package com.rocketpunch.todo.web
 
 import com.rocketpunch.todo.domain.Todo
 import com.rocketpunch.todo.domain.TodoRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.CREATED
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -23,6 +27,19 @@ class TodoRestController(
         return Todo(null, dto.name, dto.completed ?: false)
             .let { todo -> todoRepository.save(todo) }
             .let { todoSaved -> TodoModel(todoSaved) }
+    }
+
+    @GetMapping("/{id}")
+    fun getTodosById(@PathVariable id: Long): TodoModel {
+        return todoRepository.findByIdOrNull(id)
+            ?.let { todo -> TodoModel(todo) }
+            ?: throw NoSuchElementException("No such todo with given id: $id")
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(NoSuchElementException::class)
+    fun handleNoSuchElementException(exception: NoSuchElementException): ExceptionModel {
+        return ExceptionModel("404", exception.localizedMessage)
     }
 
     @ExceptionHandler

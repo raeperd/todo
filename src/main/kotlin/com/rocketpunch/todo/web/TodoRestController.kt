@@ -5,6 +5,8 @@ import com.rocketpunch.todo.domain.TodoRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.NO_CONTENT
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,15 +33,21 @@ class TodoRestController(
 
     @GetMapping("/{id}")
     fun getTodosById(@PathVariable id: Long): TodoModel {
-        return todoRepository.findByIdOrNull(id)
-            ?.let { todo -> TodoModel(todo) }
-            ?: throw NoSuchElementException("No such todo with given id: $id")
+        return todoRepository.findByIdOrThrow(id)
+            .let { todo -> TodoModel(todo) }
     }
 
     @GetMapping
     fun getTodos(): List<TodoSummarizedModel> {
         return todoRepository.findAll()
             .map { todo -> TodoSummarizedModel(todo) }
+    }
+
+    @ResponseStatus(NO_CONTENT)
+    @DeleteMapping("/{id}")
+    fun deleteTodoById(@PathVariable id: Long) {
+        todoRepository.findByIdOrThrow(id)
+            .let { todoRepository.delete(it) }
     }
 
     @ResponseStatus(NOT_FOUND)
@@ -51,6 +59,10 @@ class TodoRestController(
     @ExceptionHandler
     fun handleException(exception: Exception): ExceptionModel {
         return ExceptionModel("500", "Server Error")
+    }
+
+    private fun TodoRepository.findByIdOrThrow(id: Long): Todo {
+        return findByIdOrNull(id) ?: throw NoSuchElementException("No such todo with given id: $id")
     }
 }
 

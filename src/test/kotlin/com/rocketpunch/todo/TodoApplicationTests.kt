@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType.APPLICATION_JSON
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActionsDsl
+import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.transaction.annotation.Transactional
@@ -92,6 +93,24 @@ class TodoApplicationTests {
                     jsonPath("$.[1].id", equalTo(todos[1].id.toInt()))
                 }
             }
+    }
+
+    @Test
+    fun `when DELETE todos by id not exists expect not found status`() {
+        mockMvc.delete("/todos/20")
+            .andExpect {
+                status { isNotFound() }
+                content { jsonPath("status", equalTo("404")) }
+            }
+    }
+
+    @Transactional
+    @Test
+    fun `when DELETE todo by id expect return no content status`() {
+        val todoCreated = mockMvc.createTodos("todo", null)
+
+        mockMvc.delete("/todos/${todoCreated.id}")
+            .andExpect { status { isNoContent() } }
     }
 
     private fun MockMvc.createTodos(name: String, completed: Boolean?): TodoModel {

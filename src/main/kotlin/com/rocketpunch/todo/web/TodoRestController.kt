@@ -3,9 +3,11 @@ package com.rocketpunch.todo.web
 import com.rocketpunch.todo.domain.Todo
 import com.rocketpunch.todo.domain.TodoRepository
 import org.springframework.http.HttpStatus.CREATED
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
@@ -17,10 +19,15 @@ class TodoRestController(
 ) {
     @ResponseStatus(CREATED)
     @PostMapping
-    fun postTodos(@RequestBody dto: TodoPostRequestBody): TodoModel {
+    fun postTodos(@RequestParam apikey: String, @RequestBody dto: TodoPostRequestBody): TodoModel {
         return Todo(null, dto.name, dto.completed ?: false)
             .let { todo -> todoRepository.save(todo) }
             .let { todoSaved -> TodoModel(todoSaved) }
+    }
+
+    @ExceptionHandler
+    fun handleException(exception: Exception): ExceptionModel {
+        return ExceptionModel("500", "Server Error")
     }
 }
 
@@ -46,3 +53,8 @@ data class TodoModel(
         todo.updatedAt
     )
 }
+
+data class ExceptionModel(
+    val status: String,
+    val message: String
+)

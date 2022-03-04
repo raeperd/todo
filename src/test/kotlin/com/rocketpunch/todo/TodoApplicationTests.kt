@@ -27,7 +27,7 @@ class TodoApplicationTests {
     fun `when POST todos expect return created`() {
         val requestBody = TodoPostRequestBody("todo name", null)
 
-        mockMvc.post("/todos") {
+        mockMvc.post("/todos?apikey=123") {
             contentType = APPLICATION_JSON
             content = objectMapper.writeValueAsString(requestBody)
         }.andExpect {
